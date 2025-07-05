@@ -1,0 +1,31 @@
+name: Unzip Uploaded ZIP Files
+
+on:
+  push:
+    paths:
+      - '**.zip'
+    branches:
+      - main
+
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find and unzip all zip files
+        run: |
+          shopt -s globstar
+          for file in **/*.zip; do
+            [ -e "$file" ] || continue
+            unzip -o "$file" -d "${file%.zip}"
+          done
+
+      - name: Commit and push extracted files
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git add .
+          git commit -m "Extracted zip files automatically" || exit 0
+          git push
